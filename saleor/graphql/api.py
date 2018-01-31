@@ -2,9 +2,9 @@ import graphene
 from graphene_django.debug import DjangoDebug
 from graphene_django.filter import DjangoFilterConnectionField
 
+from .category.types import resolve_categories
 from .product.types import (
-    Category, ProductAttribute, Product, resolve_attributes, resolve_category,
-    resolve_product, resolve_products)
+    Category, ProductAttribute, Product, resolve_attributes, resolve_products)
 from .core.filters import DistinctFilterSet
 from .product.filters import ProductFilterSet
 
@@ -26,6 +26,10 @@ class Query(graphene.ObjectType):
     def resolve_category(self, info, id):
         return graphene.Node.get_node_from_global_id(
             info, id, only_type=Category)
+
+    def resolve_categories(self, info, **args):
+        parent = args.get('parent')
+        return resolve_categories(parent, info)
 
     def resolve_product(self, info, id):
         return graphene.Node.get_node_from_global_id(
