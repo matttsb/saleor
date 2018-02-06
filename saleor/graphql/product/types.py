@@ -86,9 +86,6 @@ class Category(CountableDjangoObjectType):
         filter_fields = ['id', 'name']
         interfaces = [relay.Node]
 
-    def resolve_ancestors(self, info):
-        return get_ancestors_from_cache(self, info.context)
-
     def resolve_children(self, info):
         return self.children.distinct()
 
@@ -159,6 +156,10 @@ def resolve_category(id, info):
         setattr(info.context, CONTEXT_CACHE_NAME, cache)
         return category
     return None
+
+
+def resolve_categories(parent_pk=None):
+    return models.Category.objects.filter(parent=parent_pk)
 
 
 def resolve_product(id, info):

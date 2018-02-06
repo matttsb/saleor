@@ -2,9 +2,10 @@ import graphene
 from graphene_django.debug import DjangoDebug
 from graphene_django.filter import DjangoFilterConnectionField
 
-from .category.types import resolve_categories
+from .product.mutations import CategoryCreate, CategoryDelete, CategoryUpdate
 from .product.types import (
-    Category, ProductAttribute, Product, resolve_attributes, resolve_products)
+    Category, ProductAttribute, Product, resolve_attributes, resolve_products,
+    resolve_categories)
 from .core.filters import DistinctFilterSet
 from .product.filters import ProductFilterSet
 
@@ -15,7 +16,8 @@ class Query(graphene.ObjectType):
         filterset_class=DistinctFilterSet,
         in_category=graphene.Argument(graphene.ID))
     categories = DjangoFilterConnectionField(
-        Category, filterset_class=DistinctFilterSet)
+        Category, filterset_class=DistinctFilterSet,
+        parent=graphene.Argument(graphene.Int))
     category = graphene.Field(Category, id=graphene.Argument(graphene.ID))
     product = graphene.Field(Product, id=graphene.Argument(graphene.ID))
     products = DjangoFilterConnectionField(
@@ -29,7 +31,7 @@ class Query(graphene.ObjectType):
 
     def resolve_categories(self, info, **args):
         parent = args.get('parent')
-        return resolve_categories(parent, info)
+        return resolve_categories(parent)
 
     def resolve_product(self, info, id):
         return graphene.Node.get_node_from_global_id(
@@ -42,4 +44,10 @@ class Query(graphene.ObjectType):
         return resolve_attributes(in_category, info)
 
 
-schema = graphene.Schema(Query)
+class Mutations(graphene.ObjectType):
+    category_create = CategoryCreate.Field()
+    category_delete = CategoryDelete.Field()
+    category_update = CategoryUpdate.Field()
+
+
+schema = graphene.Schema(Query, Mutations)
