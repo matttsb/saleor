@@ -9,7 +9,6 @@ from .product.types import (
 from .core.filters import DistinctFilterSet
 from .product.filters import ProductFilterSet
 
-
 class Query(graphene.ObjectType):
     attributes = DjangoFilterConnectionField(
         ProductAttribute,
