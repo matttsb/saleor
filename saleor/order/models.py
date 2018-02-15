@@ -93,9 +93,13 @@ class Order(models.Model):
 
     def is_fully_paid(self):
         total_paid = sum(
-            [payment.total for payment in
-             self.payments.filter(status=PaymentStatus.CONFIRMED)], Decimal())
-        return total_paid >= self.total.gross.amount
+            [
+                payment.get_total_price() for payment in
+                self.payments.filter(status=PaymentStatus.CONFIRMED)],
+            TaxedMoney(
+                net=Money(0, currency=settings.DEFAULT_CURRENCY),
+                gross=Money(0, currency=settings.DEFAULT_CURRENCY)))
+        return total_paid.gross >= self.total.gross
 
     def get_user_current_email(self):
         return self.user.email if self.user else self.user_email

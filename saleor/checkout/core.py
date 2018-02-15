@@ -220,12 +220,11 @@ class Checkout:
         name = self.storage.get('discount_name')
         if value is not None and name is not None and currency is not None:
             amount = Money(value, currency=currency)
-            return FixedDiscount(Money(value, currency=currency), name)
+            return FixedDiscount(amount, name)
         return None
 
     @discount.setter
     def discount(self, discount):
-        # FIXME: discount.amount.amount
         self.storage['discount_value'] = smart_text(discount.amount.amount)
         self.storage['discount_currency'] = discount.amount.currency
         self.storage['discount_name'] = discount.name

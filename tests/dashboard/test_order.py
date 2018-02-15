@@ -4,6 +4,7 @@ from unittest.mock import patch
 import pytest
 from django.urls import reverse
 from django_fsm import TransitionNotAllowed
+from payments import FraudStatus, PaymentStatus
 from prices import Money, TaxedMoney
 
 from tests.utils import get_redirect_location, get_url_path
@@ -18,6 +19,51 @@ from saleor.order.utils import (
     add_variant_to_existing_lines, change_order_line_quantity,
     remove_empty_groups)
 from saleor.product.models import ProductVariant, Stock, StockLocation
+
+
+@pytest.mark.integration
+@pytest.mark.django_db
+def test_view_capture_order_payment(admin_client, order_with_lines_and_stock):
+    order = order_with_lines_and_stock
+    payment = order.payments.create(
+        variant='default', status=PaymentStatus.PREAUTH,
+        fraud_status=FraudStatus.ACCEPT, currency='USD', total='100.0')
+
+    url = reverse(
+        'dashboard:capture-payment', kwargs={
+            'order_pk': order.pk,
+            'payment_pk': payment.pk})
+    response = admin_client.get(url)
+    assert response.status_code == 200
+
+    response = admin_client.post(
+        url, {'csrfmiddlewaretoken': 'hello', 'amount': '20.00'})
+    assert response.status_code == 302
+    assert order.payments.last().get_captured_price() == TaxedMoney(
+        net=Money(20, 'USD'), gross=Money(20, 'USD'))
+
+
+@pytest.mark.integration
+@pytest.mark.django_db
+def test_view_refund_order_payment(admin_client, order_with_lines_and_stock):
+    order = order_with_lines_and_stock
+    payment = order.payments.create(
+        variant='default', status=PaymentStatus.CONFIRMED,
+        fraud_status=FraudStatus.ACCEPT, currency='USD', total='100.0',
+        captured_amount='100.0')
+
+    url = reverse(
+        'dashboard:refund-payment', kwargs={
+            'order_pk': order.pk,
+            'payment_pk': payment.pk})
+    response = admin_client.get(url)
+    assert response.status_code == 200
+
+    response = admin_client.post(
+        url, {'csrfmiddlewaretoken': 'hello', 'amount': '20.00'})
+    assert response.status_code == 302
+    assert order.payments.last().get_captured_price() == TaxedMoney(
+        net=Money(80, 'USD'), gross=Money(80, 'USD'))
 
 
 @pytest.mark.integration
