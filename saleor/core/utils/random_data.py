@@ -176,7 +176,7 @@ def get_price_override(schema, combinations_num, current_price):
     prices = []
     if schema.get('different_variant_prices'):
         prices = sorted(
-            [current_price + fake.price().gross for _ in range(combinations_num)],
+            [current_price + fake.money() for _ in range(combinations_num)],
             reverse=True)
     return prices
 
@@ -228,11 +228,10 @@ def create_products_by_schema(placeholder_dir, how_many, create_images,
 
 
 class SaleorProvider(BaseProvider):
-    def price(self):
-        random_amount = Money(
+    def money(self):
+        return Money(
             fake.pydecimal(2, 2, positive=True),
             currency=settings.DEFAULT_CURRENCY)
-        return TaxedMoney(net=random_amount, gross=random_amount)
 
     def delivery_region(self):
         return random.choice(DELIVERY_REGIONS)
@@ -272,7 +271,7 @@ def get_or_create_collection(name, **kwargs):
 def create_product(**kwargs):
     defaults = {
         'name': fake.company(),
-        'price': fake.price().gross,
+        'price': fake.money(),
         'description': '\n\n'.join(fake.paragraphs(5))}
     defaults.update(kwargs)
     return Product.objects.create(**defaults)
@@ -393,7 +392,7 @@ def create_delivery_group(order):
         region = ANY_COUNTRY
     shipping_method = fake.shipping_method()
     shipping_country = shipping_method.price_per_country.get_or_create(
-        country_code=region, defaults={'price': fake.price()})[0]
+        country_code=region, defaults={'price': fake.money()})[0]
     delivery_group = DeliveryGroup.objects.create(
         status=random.choice([GroupStatus.NEW, GroupStatus.SHIPPED]),
         order=order,
@@ -488,10 +487,10 @@ def create_product_sales(how_many=5):
 
 def create_shipping_methods():
     shipping_method = ShippingMethod.objects.create(name='UPC')
-    shipping_method.price_per_country.create(price=fake.price().gross)
+    shipping_method.price_per_country.create(price=fake.money())
     yield 'Shipping method #%d' % shipping_method.id
     shipping_method = ShippingMethod.objects.create(name='DHL')
-    shipping_method.price_per_country.create(price=fake.price().gross)
+    shipping_method.price_per_country.create(price=fake.money())
     yield 'Shipping method #%d' % shipping_method.id
 
 

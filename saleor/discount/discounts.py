@@ -1,5 +1,3 @@
-from decimal import Decimal
-
 from prices.discount import (
     fixed_discount, percentage_discount as prices_percentage_discount)
 
