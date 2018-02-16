@@ -184,8 +184,9 @@ class Order(models.Model):
     def get_subtotal_without_voucher(self):
         if self.get_lines():
             return self.total
-        zero_amount = Money(0, currency=settings.DEFAULT_CURRENCY)
-        return TaxedMoney(zero_amount, zero_amount)
+        return TaxedMoney(
+            net=Money(0, currency=settings.DEFAULT_CURRENCY),
+            gross=Money(0, currency=settings.DEFAULT_CURRENCY))
 
     def can_cancel(self):
         return self.status == OrderStatus.OPEN
@@ -283,7 +284,7 @@ class OrderLine(models.Model):
             self.unit_price_net, currency=settings.DEFAULT_CURRENCY)
         amount_gross = Money(
             self.unit_price_gross, currency=settings.DEFAULT_CURRENCY)
-        return TaxedMoney(amount_net, amount_gross)
+        return TaxedMoney(net=amount_net, gross=amount_gross)
 
     def get_total(self):
         return self.get_price_per_item() * self.quantity
@@ -342,13 +343,14 @@ class Payment(BasePayment):
         return lines
 
     def get_total_price(self):
-        total_net = Money(self.total - self.tax, currency=self.currency)
-        total_gross = Money(self.total, currency=self.currency)
-        return TaxedMoney(total_net, total_gross)
+        return TaxedMoney(
+            net=Money(self.total - self.tax, currency=self.currency),
+            gross=Money(self.total, currency=self.currency))
 
     def get_captured_price(self):
-        amount = Money(self.captured_amount, currency=self.currency)
-        return TaxedMoney(amount, amount)
+        return TaxedMoney(
+            net=Money(self.captured_amount, currency=self.currency),
+            gross=Money(self.captured_amount, currency=self.currency))
 
 
 class OrderHistoryEntry(models.Model):

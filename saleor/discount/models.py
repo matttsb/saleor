@@ -9,7 +9,7 @@ from django.utils.translation import pgettext, pgettext_lazy
 from django_countries import countries
 from django_prices.models import MoneyField
 from django_prices.templatetags.prices_i18n import amount
-from prices import Money, TaxedMoney
+from prices import Money
 
 from . import DiscountValueType, VoucherApplyToProduct, VoucherType
 from .discounts import FixedDiscount, percentage_discount

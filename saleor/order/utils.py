@@ -52,7 +52,7 @@ def recalculate_order(order):
     total = TaxedMoney(
         net=Money(total_net, currency=settings.DEFAULT_CURRENCY),
         gross=Money(total_gross, currency=settings.DEFAULT_CURRENCY))
-    total += TaxedMoney(order.shipping_price, order.shipping_price)
+    total += TaxedMoney(net=order.shipping_price, gross=order.shipping_price)
     order.total = total
     order.save()
 

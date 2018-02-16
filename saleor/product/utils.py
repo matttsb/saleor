@@ -240,8 +240,9 @@ def price_as_dict(price):
 def price_range_as_dict(price_range):
     if not price_range:
         return None
-    return {'maxPrice': price_as_dict(price_range.start),
-            'minPrice': price_as_dict(price_range.stop)}
+    return {
+        'maxPrice': price_as_dict(price_range.start),
+        'minPrice': price_as_dict(price_range.stop)}
 
 
 def get_variant_url_from_product(product, attributes):
@@ -316,7 +317,7 @@ def get_product_costs_data(product):
         zero = TaxedMoney(
             net=Money(0, currency=settings.DEFAULT_CURRENCY),
             gross=Money(0, currency=settings.DEFAULT_CURRENCY))
-        purchase_costs_range = TaxedMoneyRange(zero, zero)
+        purchase_costs_range = TaxedMoneyRange(start=zero, stop=zero)
         gross_margin = (0, 0)
 
         return purchase_costs_range, gross_margin

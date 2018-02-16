@@ -29,7 +29,8 @@ class OrderNoteForm(forms.ModelForm):
     class Meta:
         model = OrderNote
         fields = ['content', 'is_public']
-        widgets = {'content': forms.Textarea()}
+        widgets = {
+            'content': forms.Textarea()}
         labels = {
             'content': pgettext_lazy('Order note', 'Note'),
             'is_public': pgettext_lazy(
@@ -80,8 +81,8 @@ class ManagePaymentForm(forms.Form):
 class CapturePaymentForm(ManagePaymentForm):
 
     clean_status = PaymentStatus.PREAUTH
-    clean_error = pgettext_lazy(
-        'Payment form error', 'Only pre-authorized payments can be captured')
+    clean_error = pgettext_lazy('Payment form error',
+                                'Only pre-authorized payments can be captured')
 
     def capture(self):
         return self.try_payment_action(self.payment.capture)
@@ -90,8 +91,8 @@ class CapturePaymentForm(ManagePaymentForm):
 class RefundPaymentForm(ManagePaymentForm):
 
     clean_status = PaymentStatus.CONFIRMED
-    clean_error = pgettext_lazy(
-        'Payment form error', 'Only confirmed payments can be refunded')
+    clean_error = pgettext_lazy('Payment form error',
+                                'Only confirmed payments can be refunded')
 
     def refund(self):
         return self.try_payment_action(self.payment.refund)
@@ -104,12 +105,7 @@ class ReleasePaymentForm(ManagePaymentForm):
         'Payment form error', 'Only pre-authorized payments can be released')
 
     def release(self):
-        try:
-            self.payment.release()
-        except (PaymentError, ValueError) as e:
-            self.payment_error(str(e))
-            return False
-        return True
+        return self.try_payment_action(self.payment.release)
 
 
 class MoveLinesForm(forms.Form):
@@ -170,7 +166,9 @@ class ChangeQuantityForm(forms.ModelForm):
     class Meta:
         model = OrderLine
         fields = ['quantity']
-        labels = {'quantity': pgettext_lazy('Integer number', 'Quantity')}
+        labels = {
+            'quantity': pgettext_lazy(
+                'Integer number', 'Quantity')}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -229,7 +227,8 @@ class ShipGroupForm(forms.ModelForm):
         if self.instance.status != GroupStatus.NEW:
             raise forms.ValidationError(
                 pgettext_lazy(
-                    'Ship group form error', 'Cannot ship this group'),
+                    'Ship group form error',
+                    'Cannot ship this group'),
                 code='invalid')
 
     def save(self, commit=True):
@@ -288,7 +287,8 @@ class RemoveVoucherForm(forms.Form):
         if not self.order.voucher:
             raise forms.ValidationError(
                 pgettext_lazy(
-                    'Remove voucher form error', 'This order has no voucher'))
+                    'Remove voucher form error',
+                    'This order has no voucher'))
         return data
 
     def remove_voucher(self):
@@ -319,7 +319,9 @@ class ChangeStockForm(forms.ModelForm):
     class Meta:
         model = OrderLine
         fields = ['stock']
-        labels = {'stock': pgettext_lazy('Stock record', 'Stock')}
+        labels = {
+            'stock': pgettext_lazy(
+                'Stock record', 'Stock')}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

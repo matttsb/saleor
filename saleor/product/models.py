@@ -165,8 +165,9 @@ class Product(models.Model):
                 self.get_price_per_item(variant, discounts=discounts)
                 for variant in self]
             return TaxedMoneyRange(min(prices), max(prices))
-        price = calculate_discounted_price(self, self.price, discounts)
-        return TaxedMoneyRange(price, price)
+        discounted_price = calculate_discounted_price(
+            self, self.price, discounts)
+        return TaxedMoneyRange(start=discounted_price, stop=discounted_price)
 
     def get_gross_price_range(self, discounts=None):
         grosses = [
@@ -318,7 +319,7 @@ class Stock(models.Model):
 
     def get_total(self):
         if self.cost_price:
-            return TaxedMoney(self.cost_price, self.cost_price)
+            return TaxedMoney(net=self.cost_price, gross=self.cost_price)
 
 
 class ProductAttribute(models.Model):

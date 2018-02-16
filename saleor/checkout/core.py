@@ -304,7 +304,8 @@ class Checkout:
         else:
             shipping_address = None
         billing_address = self._save_order_billing_address()
-        self._add_to_user_address_book(self.billing_address, is_billing=True)
+        self._add_to_user_address_book(
+            self.billing_address, is_billing=True)
 
         if self.shipping_method:
             shipping_price = self.shipping_method.get_total()

@@ -25,7 +25,7 @@ def test_valid_voucher_limit(settings, limit, value):
         discount_value_type=DiscountValueType.FIXED,
         discount_value=Money(10, currency='USD'),
         limit=limit)
-    voucher.validate_limit(TaxedMoney(value, value))
+    voucher.validate_limit(TaxedMoney(net=value, gross=value))
 
 
 @pytest.mark.integration
@@ -72,7 +72,7 @@ def test_value_voucher_checkout_discount(
         discount_value=discount_value,
         limit=Money(limit, currency='USD') if limit is not None else None)
     subtotal = TaxedMoney(
-        Money(total, currency='USD'), Money(total, currency='USD'))
+        net=Money(total, currency='USD'), gross=Money(total, currency='USD'))
     checkout = Mock(get_subtotal=Mock(return_value=subtotal))
     discount = get_voucher_discount_for_checkout(voucher, checkout)
     assert discount.amount == Money(expected_value, currency='USD')
@@ -84,8 +84,8 @@ def test_value_voucher_checkout_discount_not_applicable(settings):
         discount_value_type=DiscountValueType.FIXED,
         discount_value=10,
         limit=Money(100, currency='USD'))
-    subtotal = TaxedMoney(Money(10, currency='USD'),
-                          Money(10, currency='USD'))
+    subtotal = TaxedMoney(
+        net=Money(10, currency='USD'), gross=Money(10, currency='USD'))
     checkout = Mock(get_subtotal=Mock(return_value=subtotal))
     with pytest.raises(NotApplicable) as e:
         get_voucher_discount_for_checkout(voucher, checkout)
@@ -140,7 +140,7 @@ def test_shipping_voucher_checkout_discount(
 def test_shipping_voucher_checkout_discount_not_applicable(
         settings, is_shipping_required, shipping_method, discount_value,
         discount_type, apply_to, limit, subtotal, error_msg):
-    subtotal_price = TaxedMoney(subtotal, subtotal)
+    subtotal_price = TaxedMoney(net=subtotal, gross=subtotal)
     checkout = Mock(
         is_shipping_required=is_shipping_required,
         shipping_method=shipping_method,
@@ -281,8 +281,9 @@ def test_products_voucher_checkout_discount_not(
     monkeypatch.setattr(
         'saleor.discount.utils.get_product_variants_and_prices',
         lambda cart, product: (
-            (None, TaxedMoney(Money(p, currency='USD'),
-                              Money(p, currency='USD'))) for p in prices))
+            (None, TaxedMoney(
+                net=Money(p, currency='USD'), gross=Money(p, currency='USD')))
+            for p in prices))
     voucher = Voucher(
         code='unique', type=VoucherType.PRODUCT,
         discount_value_type=discount_type,

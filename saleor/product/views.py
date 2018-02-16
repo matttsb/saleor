@@ -55,8 +55,8 @@ def product_details(request, slug, product_id, form=None):
         product.available_on is None or product.available_on <= today)
     if form is None:
         form = handle_cart_form(request, product, create_cart=False)[0]
-    availability = get_availability(
-        product, discounts=request.discounts, local_currency=request.currency)
+    availability = get_availability(product, discounts=request.discounts,
+                                    local_currency=request.currency)
     product_images = get_product_images(product)
     variant_picker_data = get_variant_picker_data(
         product, request.discounts, request.currency)
@@ -111,9 +111,8 @@ def category_index(request, path, category_id):
     category = get_object_or_404(Category, id=category_id)
     actual_path = category.get_full_path()
     if actual_path != path:
-        return redirect(
-            'product:category', permanent=True, path=actual_path,
-            category_id=category_id)
+        return redirect('product:category', permanent=True, path=actual_path,
+                        category_id=category_id)
     products = products_with_details(user=request.user).filter(
         category__id=category.id).order_by('name')
     product_filter = ProductCategoryFilter(

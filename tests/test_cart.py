@@ -599,7 +599,7 @@ def test_total_with_discount(client, sale, request_cart, product_in_stock):
     request_cart.add(variant, 1)
     line = request_cart.lines.first()
     assert line.get_total(discounts=sales) == TaxedMoney(
-        Money(5, 'USD'), Money(5, 'USD'))
+        net=Money(5, 'USD'), gross=Money(5, 'USD'))
 
 
 def test_product_group():
@@ -729,9 +729,9 @@ def test_get_cart_data(request_cart_with_item, shipping_method):
     cart_data = utils.get_cart_data(
         request_cart_with_item, shipment_option, 'USD', None)
     assert cart_data['cart_total'] == TaxedMoney(
-        Money(10, 'USD'), Money(10, 'USD'))
+        net=Money(10, 'USD'), gross=Money(10, 'USD'))
     assert cart_data['total_with_shipping'].start == TaxedMoney(
-        Money(20, 'USD'), Money(20, 'USD'))
+        net=Money(20, 'USD'), gross=Money(20, 'USD'))
 
 
 def test_get_cart_data_no_shipping(request_cart_with_item):
@@ -739,5 +739,6 @@ def test_get_cart_data_no_shipping(request_cart_with_item):
     cart_data = utils.get_cart_data(
         request_cart_with_item, shipment_option, 'USD', None)
     cart_total = cart_data['cart_total']
-    assert cart_total == TaxedMoney(Money(10, 'USD'), Money(10, 'USD'))
+    assert cart_total == TaxedMoney(
+        net=Money(10, 'USD'), gross=Money(10, 'USD'))
     assert cart_data['total_with_shipping'].start == cart_total

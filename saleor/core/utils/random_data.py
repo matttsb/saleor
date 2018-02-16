@@ -229,9 +229,10 @@ def create_products_by_schema(placeholder_dir, how_many, create_images,
 
 class SaleorProvider(BaseProvider):
     def price(self):
-        amount = Money(fake.pydecimal(2, 2, positive=True),
-                       currency=settings.DEFAULT_CURRENCY)
-        return TaxedMoney(amount, amount)
+        random_amount = Money(
+            fake.pydecimal(2, 2, positive=True),
+            currency=settings.DEFAULT_CURRENCY)
+        return TaxedMoney(net=random_amount, gross=random_amount)
 
     def delivery_region(self):
         return random.choice(DELIVERY_REGIONS)
@@ -446,7 +447,8 @@ def create_fake_order():
     delivery_group = create_delivery_group(order)
     lines = create_order_lines(delivery_group, random.randrange(1, 5))
 
-    shipping_price = TaxedMoney(order.shipping_price, order.shipping_price)
+    shipping_price = TaxedMoney(
+        net=order.shipping_price, gross=order.shipping_price)
 
     order.total = sum(
         [line.get_total() for line in lines], shipping_price)

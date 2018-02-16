@@ -81,8 +81,8 @@ class CategoryType(DjangoObjectType):
                 the products by"""),
         order_by=graphene.Argument(
             graphene.String,
-            description="""A name of field to sort the products by. The
-                negative sign in front of name implies descending order."""),
+            description="""A name of field to sort the products by. The negative
+                sign in front of name implies descending order."""),
         price_lte=graphene.Argument(
             graphene.Float, description="""Get the products with price lower
                 than or equal to the given value"""),
@@ -126,12 +126,11 @@ class CategoryType(DjangoObjectType):
 
         if attributes_filter:
             attributes = ProductAttribute.objects.prefetch_related('values')
-            attributes_map = {
-                attribute.slug: attribute.pk for attribute in attributes}
-            values_map = {
-                attr.slug: {
-                    value.slug: value.pk for value in attr.values.all()}
-                for attr in attributes}
+            attributes_map = {attribute.slug: attribute.pk
+                              for attribute in attributes}
+            values_map = {attr.slug: {value.slug: value.pk
+                                      for value in attr.values.all()}
+                          for attr in attributes}
             queries = {}
             # Convert attribute:value pairs into a dictionary where
             # attributes are keys and values are grouped in lists

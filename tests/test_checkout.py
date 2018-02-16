@@ -49,7 +49,7 @@ def test_checkout_is_shipping_required():
 
 
 def test_checkout_deliveries():
-    item_price = TaxedMoney(Money(10, 'USD'), Money(10, 'USD'))
+    item_price = TaxedMoney(net=Money(10, 'USD'), gross=Money(10, 'USD'))
     partition = Mock(
         get_total=Mock(return_value=item_price),
         get_price_per_item=Mock(return_value=item_price))
@@ -61,18 +61,18 @@ def test_checkout_deliveries():
     cart = Mock(partition=Mock(return_value=[partition]), currency='USD')
     checkout = Checkout(cart, AnonymousUser(), 'tracking_code')
     deliveries = list(checkout.deliveries)
-    assert deliveries[0][1] == TaxedMoney(Money(0, 'USD'), Money(0, 'USD'))
+    assert deliveries[0][1] == TaxedMoney(
+        net=Money(0, 'USD'), gross=Money(0, 'USD'))
     assert deliveries[0][2] == partition.get_total()
     assert deliveries[0][0][0][0] == partition
 
 
 def test_checkout_deliveries_with_shipping_method(monkeypatch):
-    shipping_cost = 5
-    items_cost = 5
+    shipping_cost = Money(3, currency=settings.DEFAULT_CURRENCY)
+    items_cost = Money(5, currency=settings.DEFAULT_CURRENCY)
+    cost_with_shipping = items_cost + shipping_cost
 
-    items_price = TaxedMoney(
-        net=Money(items_cost, currency=settings.DEFAULT_CURRENCY),
-        gross=Money(items_cost, currency=settings.DEFAULT_CURRENCY))
+    items_price = TaxedMoney(net=items_cost, gross=items_cost)
     partition = Mock(
         is_shipping_required=MagicMock(return_value=True),
         get_total=Mock(return_value=items_price),
@@ -86,20 +86,16 @@ def test_checkout_deliveries_with_shipping_method(monkeypatch):
         partition=Mock(return_value=[partition]),
         currency=settings.DEFAULT_CURRENCY)
 
-    shipping_price = TaxedMoney(
-        net=Money(shipping_cost, settings.DEFAULT_CURRENCY),
-        gross=Money(shipping_cost, settings.DEFAULT_CURRENCY))
+    shipping_price = TaxedMoney(net=shipping_cost, gross=shipping_cost)
     shipping_method_mock = Mock(get_total=Mock(return_value=shipping_price))
     monkeypatch.setattr(Checkout, 'shipping_method', shipping_method_mock)
 
-    checkout = Checkout(
-        cart, AnonymousUser(), 'tracking_code')
-
+    checkout = Checkout(cart, AnonymousUser(), 'tracking_code')
     deliveries = list(checkout.deliveries)
+
     assert deliveries[0][1] == shipping_price
     assert deliveries[0][2] == TaxedMoney(
-        Money(items_cost + shipping_cost, currency=settings.DEFAULT_CURRENCY),
-        Money(items_cost + shipping_cost, currency=settings.DEFAULT_CURRENCY))
+        net=cost_with_shipping, gross=cost_with_shipping)
     assert deliveries[0][0][0][0] == partition
 
 
@@ -236,7 +232,7 @@ def test_checkout_discount(request_cart, sale, product_in_stock):
     request_cart.add(variant, 1)
     checkout = Checkout(request_cart, AnonymousUser(), 'tracking_code')
     assert checkout.get_total() == TaxedMoney(
-        Money(5, currency="USD"), Money(5, currency="USD"))
+        net=Money(5, currency="USD"), gross=Money(5, currency="USD"))
 
 
 def test_checkout_create_order_insufficient_stock(

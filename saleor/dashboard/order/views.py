@@ -54,7 +54,7 @@ def order_details(request, order_pk):
     payment = order.payments.last()
     groups = list(order)
     zero_amount = Money(0, currency=order.total.currency)
-    captured = preauthorized = TaxedMoney(zero_amount, zero_amount)
+    captured = preauthorized = TaxedMoney(net=zero_amount, gross=zero_amount)
     balance = captured - order.total
     if payment:
         can_capture = (

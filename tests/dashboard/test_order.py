@@ -679,7 +679,7 @@ def test_process_new_delivery_group_with_discount(
 
     line = group.lines.first()
     assert line.get_price_per_item() == TaxedMoney(
-        Money('5', 'USD'), Money('5', 'USD'))
+        net=Money('5', 'USD'), gross=Money('5', 'USD'))
 
 
 def test_cant_process_cancelled_delivery_group(

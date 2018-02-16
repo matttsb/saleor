@@ -10,8 +10,9 @@ from saleor.order.utils import add_variant_to_delivery_group
 
 
 def test_total_property():
-    order = models.Order(total_net=Money(20, currency='USD'),
-                         total_tax=Money(5, currency='USD'))
+    order = models.Order(
+        total_net=Money(20, currency='USD'),
+        total_tax=Money(5, currency='USD'))
     assert order.total.gross == Money(25, currency='USD')
     assert order.total.tax == Money(5, currency='USD')
     assert order.total.net == Money(20, currency='USD')
@@ -23,8 +24,8 @@ def test_total_property_empty_value():
 
 
 def test_total_setter():
-    price = TaxedMoney(Money(10, currency='USD'),
-                       Money(20, currency='USD'))
+    price = TaxedMoney(
+        net=Money(10, currency='USD'), gross=Money(20, currency='USD'))
     order = models.Order()
     order.total = price
     assert order.total_net == Money(10, currency='USD')

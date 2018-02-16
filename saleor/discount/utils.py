@@ -118,8 +118,10 @@ def _get_product_or_category_voucher_discount_for_checkout(voucher, checkout):
             (discount.amount for discount in discounts),
             Money(0, currency=settings.DEFAULT_CURRENCY))
         return FixedDiscount(discount_total, name=smart_text(voucher))
-    zero_amount = Money(0, currency=settings.DEFAULT_CURRENCY)
-    product_total = sum(prices, TaxedMoney(zero_amount, zero_amount))
+    empty_total = TaxedMoney(
+        net=Money(0, currency=settings.DEFAULT_CURRENCY),
+        gross=Money(0, currency=settings.DEFAULT_CURRENCY))
+    product_total = sum(prices, empty_total)
     return voucher.get_fixed_discount_for(product_total)
 
 
