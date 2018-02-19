@@ -47,7 +47,7 @@
             {{ item.product_sku }}
           </td>
           <td class="right-align">
-            {{ item.get_price_per_item.gross|amount:'html' }}
+            {{ item.unit_price.gross|amount:'html' }}
           </td>
           <td class="right-align">
             {{ item.quantity }}

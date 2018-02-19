@@ -9,7 +9,7 @@ from django.urls import reverse
 from django.utils.timezone import now
 from django.utils.translation import pgettext_lazy
 from django_fsm import FSMField, transition
-from django_prices.models import MoneyField
+from django_prices.models import MoneyField, TaxedMoneyField
 from payments import PaymentStatus, PurchasedItem
 from payments.models import BasePayment
 from prices import Money, TaxedMoney
@@ -273,21 +273,18 @@ class OrderLine(models.Model):
         'product.Stock', on_delete=models.SET_NULL, null=True)
     quantity = models.IntegerField(
         validators=[MinValueValidator(0), MaxValueValidator(999)])
-    unit_price_net = models.DecimalField(max_digits=12, decimal_places=4)
-    unit_price_gross = models.DecimalField(max_digits=12, decimal_places=4)
+    unit_price_net = MoneyField(
+        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=4)
+    unit_price_gross = MoneyField(
+        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=4)
+    unit_price = TaxedMoneyField(
+        net_field='unit_price_net', gross_field='unit_price_gross')
 
     def __str__(self):
         return self.product_name
 
-    def get_price_per_item(self, **kwargs):
-        amount_net = Money(
-            self.unit_price_net, currency=settings.DEFAULT_CURRENCY)
-        amount_gross = Money(
-            self.unit_price_gross, currency=settings.DEFAULT_CURRENCY)
-        return TaxedMoney(net=amount_net, gross=amount_gross)
-
     def get_total(self):
-        return self.get_price_per_item() * self.quantity
+        return self.unit_price * self.quantity
 
 
 class PaymentQuerySet(models.QuerySet):

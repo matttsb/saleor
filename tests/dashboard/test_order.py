@@ -678,7 +678,7 @@ def test_process_new_delivery_group_with_discount(
     group.save()
 
     line = group.lines.first()
-    assert line.get_price_per_item() == TaxedMoney(
+    assert line.unit_price == TaxedMoney(
         net=Money('5', 'USD'), gross=Money('5', 'USD'))
 
 

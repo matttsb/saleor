@@ -298,7 +298,7 @@
                       </span>
                     </td>
                     <td class="right-align">
-                      {{ line.get_price_per_item.gross|amount:'html' }}
+                      {{ line.unit_price.gross|amount:'html' }}
                     </td>
                     <td class="right-align">
                       {% if group.can_edit_lines %}

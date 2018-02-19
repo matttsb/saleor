@@ -417,8 +417,7 @@ def create_order_line(delivery_group):
         quantity=quantity,
         stock=stock,
         stock_location=stock.location.name,
-        unit_price_net=product.price.amount,
-        unit_price_gross=product.price.amount)
+        unit_price=TaxedMoney(net=product.price, gross=product.price))
 
 
 def create_order_lines(delivery_group, how_many=10):

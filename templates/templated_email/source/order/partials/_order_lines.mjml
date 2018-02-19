@@ -49,7 +49,7 @@
               <td>{{ line.product_name }}</td>
               <td style="text-align: right;">{{ line.quantity }}</td>
               <td style="text-align: right;">
-                {{ line.get_price_per_item.gross|amount:'html' }}
+                {{ line.unit_price.gross|amount:'html' }}
               </td>
               <td style="text-align: right;">{{ line.get_total.gross|amount }}</td>
             </tr>
