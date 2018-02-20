@@ -160,7 +160,7 @@ def resolve_category(id, info):
     return None
 
 
-def resolve_categories(level=None):
+def resolve_categories(level=None, **kwargs):
     qs = models.Category.objects.all()
     if level is not None:
         qs = qs.filter(level=level)
