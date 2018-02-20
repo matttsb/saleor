@@ -1,7 +1,6 @@
 import graphene
 from django.db.models import Q
 from graphene import relay
-from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
 
 from ...product import models
@@ -86,6 +85,9 @@ class Category(CountableDjangoObjectType):
         filter_fields = ['id', 'name']
         interfaces = [relay.Node]
 
+    def resolve_ancestors(self, info):
+        return get_ancestors_from_cache(self, info.context)
+
     def resolve_children(self, info):
         return self.children.distinct()
 
@@ -158,8 +160,11 @@ def resolve_category(id, info):
     return None
 
 
-def resolve_categories(parent_pk=None):
-    return models.Category.objects.filter(parent=parent_pk)
+def resolve_categories(level=None):
+    qs = models.Category.objects.all()
+    if level is not None:
+        qs = qs.filter(level=level)
+    return qs.distinct()
 
 
 def resolve_product(id, info):

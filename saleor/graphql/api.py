@@ -16,7 +16,7 @@ class Query(graphene.ObjectType):
         in_category=graphene.Argument(graphene.ID))
     categories = DjangoFilterConnectionField(
         Category, filterset_class=DistinctFilterSet,
-        parent=graphene.Argument(graphene.Int))
+        level=graphene.Argument(graphene.Int))
     category = graphene.Field(Category, id=graphene.Argument(graphene.ID))
     product = graphene.Field(Product, id=graphene.Argument(graphene.ID))
     products = DjangoFilterConnectionField(
@@ -28,9 +28,8 @@ class Query(graphene.ObjectType):
         return graphene.Node.get_node_from_global_id(
             info, id, only_type=Category)
 
-    def resolve_categories(self, info, **args):
-        parent = args.get('parent')
-        return resolve_categories(parent)
+    def resolve_categories(self, info, level=None):
+        return resolve_categories(level)
 
     def resolve_product(self, info, id):
         return graphene.Node.get_node_from_global_id(

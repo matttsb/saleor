@@ -1,10 +1,9 @@
 import graphene
 
 from ...dashboard.category.forms import CategoryForm
-from ...product.models import Category
+from ...product import models
 from ..core.types import ErrorType
-from ..utils import get_object_or_none
-from .types import CategoryType
+from .types import Category
 
 
 def convert_form_errors(form):
@@ -17,7 +16,7 @@ def convert_form_errors(form):
 
 
 class CategoryMutation(graphene.Mutation):
-    category = graphene.Field(CategoryType)
+    category = graphene.Field(Category)
     errors = graphene.List(ErrorType)
 
     def mutate(self, info):
@@ -27,7 +26,7 @@ class CategoryMutation(graphene.Mutation):
 class CategoryInput(graphene.InputObjectType):
     name = graphene.String()
     description = graphene.String()
-    parent = graphene.Int()
+    parent = graphene.ID()
 
 
 class CategoryCreate(CategoryMutation):
@@ -35,9 +34,16 @@ class CategoryCreate(CategoryMutation):
         data = CategoryInput()
 
     def mutate(self, info, data):
-        category = Category()
+        category = models.Category()
         errors = []
-        form = CategoryForm(data, instance=category, parent_pk=data.parent)
+        parent_id = data.pop('parent', None)
+        if parent_id:
+            parent = graphene.Node.get_node_from_global_id(
+                info, parent_id, only_type=Category)
+        else:
+            parent = None
+        parent_pk = parent.pk if parent else None
+        form = CategoryForm(data, instance=category, parent_pk=parent_pk)
         if form.is_valid():
             category = form.save()
         else:
@@ -48,10 +54,11 @@ class CategoryCreate(CategoryMutation):
 class CategoryUpdate(CategoryMutation):
     class Arguments:
         data = CategoryInput()
-        pk = graphene.Int()
+        id = graphene.ID()
 
-    def mutate(self, info, data, pk):
-        category = get_object_or_none(Category, pk=pk)
+    def mutate(self, info, data, id):
+        category = graphene.Node.get_node_from_global_id(
+            info, id, only_type=Category)
         errors = []
         if category:
             form = CategoryForm(
@@ -65,10 +72,11 @@ class CategoryUpdate(CategoryMutation):
 
 class CategoryDelete(CategoryMutation):
     class Arguments:
-        pk = graphene.Int()
+        id = graphene.ID()
 
-    def mutate(self, info, pk):
-        category = get_object_or_none(Category, pk=pk)
+    def mutate(self, info, id):
+        category = graphene.Node.get_node_from_global_id(
+            info, id, only_type=Category)
         if category:
             category.delete()
         return CategoryCreate(category=category)
