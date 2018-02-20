@@ -1,5 +1,6 @@
 from datetime import date
 from decimal import Decimal
+from functools import partial
 
 from django.conf import settings
 from django.db import models
@@ -9,10 +10,9 @@ from django.utils.translation import pgettext, pgettext_lazy
 from django_countries import countries
 from django_prices.models import MoneyField
 from django_prices.templatetags.prices_i18n import amount
-from prices import Money
+from prices import Money, fixed_discount, percentage_discount
 
 from . import DiscountValueType, VoucherApplyToProduct, VoucherType
-from .discounts import FixedDiscount, percentage_discount
 
 
 class NotApplicable(ValueError):
@@ -110,21 +110,22 @@ class Voucher(models.Model):
             return choices[self.apply_to]
         return None
 
-    def get_fixed_discount_for(self, price):
+    def get_discount(self):
         if self.discount_value_type == DiscountValueType.FIXED:
             discount_amount = Money(
                 self.discount_value, currency=settings.DEFAULT_CURRENCY)
-            discount = FixedDiscount(
-                amount=discount_amount, name=smart_text(self))
-        elif self.discount_value_type == DiscountValueType.PERCENTAGE:
-            discount = percentage_discount(
-                base=price.gross, percentage=self.discount_value,
-                name=smart_text(self))
-        else:
-            raise NotImplementedError('Unknown discount value type')
-        if discount.amount > price.gross:
-            return FixedDiscount(price.gross, name=smart_text(self))
-        return discount
+            return partial(fixed_discount, discount=discount_amount)
+        if self.discount_value_type == DiscountValueType.PERCENTAGE:
+            return partial(percentage_discount, percentage=self.discount_value)
+        raise NotImplementedError('Unknown discount type')
+
+    def get_discount_amount_for(self, price):
+        discount = self.get_discount()
+        gross_amount = price.gross
+        gross_after_discount = discount(gross_amount)
+        if gross_after_discount < Money(0, currency=settings.DEFAULT_CURRENCY):
+            return gross_amount  # discount entire amount
+        return gross_amount - gross_after_discount
 
     def validate_limit(self, value):
         limit = self.limit or value.gross
@@ -159,12 +160,11 @@ class Sale(models.Model):
     def __str__(self):
         return self.name
 
-    def get_discount(self, product):
+    def get_discount(self):
         if self.type == DiscountValueType.FIXED:
-            return FixedDiscount(
-                amount=Money(self.value, currency=settings.DEFAULT_CURRENCY),
-                name=self.name)
+            discount_amount = Money(
+                self.value, currency=settings.DEFAULT_CURRENCY)
+            return partial(fixed_discount, discount=discount_amount)
         if self.type == DiscountValueType.PERCENTAGE:
-            return percentage_discount(
-                base=product.price, percentage=self.value, name=self.name)
+            return partial(percentage_discount, percentage=self.value)
         raise NotImplementedError('Unknown discount type')

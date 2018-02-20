@@ -75,7 +75,7 @@ def test_value_voucher_checkout_discount(
         net=Money(total, currency='USD'), gross=Money(total, currency='USD'))
     checkout = Mock(get_subtotal=Mock(return_value=subtotal))
     discount = get_voucher_discount_for_checkout(voucher, checkout)
-    assert discount.amount == Money(expected_value, currency='USD')
+    assert discount == Money(expected_value, currency='USD')
 
 
 def test_value_voucher_checkout_discount_not_applicable(settings):
@@ -119,7 +119,7 @@ def test_shipping_voucher_checkout_discount(
         apply_to=apply_to,
         limit=None)
     discount = get_voucher_discount_for_checkout(voucher, checkout)
-    assert discount.amount == Money(expected_value, currency='USD')
+    assert discount == Money(expected_value, currency='USD')
 
 
 @pytest.mark.parametrize(
@@ -291,26 +291,27 @@ def test_products_voucher_checkout_discount_not(
         apply_to=apply_to)
     checkout = Mock(cart=Mock())
     discount = get_voucher_discount_for_checkout(voucher, checkout)
-    assert discount.amount == Money(expected_value, 'USD')
+    assert discount == Money(expected_value, 'USD')
 
 
 @pytest.mark.django_db
 def test_sale_applies_to_correct_products(product_type, default_category):
     product = Product.objects.create(
-        name='Test Product', price=10, description='', pk=10,
-        product_type=product_type, category=default_category)
+        name='Test Product', price=Money(10, currency='USD'), description='',
+        pk=10, product_type=product_type, category=default_category)
     variant = ProductVariant.objects.create(product=product, sku='firstvar')
     product2 = Product.objects.create(
-        name='Second product', price=15, description='',
+        name='Second product', price=Money(15, currency='USD'), description='',
         product_type=product_type, category=default_category)
     sec_variant = ProductVariant.objects.create(
         product=product2, sku='secvar', pk=10)
     sale = Sale.objects.create(
-        name='Test sale', value=5, type=DiscountValueType.FIXED)
+        name='Test sale', value=3, type=DiscountValueType.FIXED)
     sale.products.add(product)
     assert product2 not in sale.products.all()
     product_discount = get_product_discount_on_sale(sale, variant.product)
-    assert product_discount.amount == Money(5, currency='USD')
+    discounted_price = product_discount(product.price)
+    assert discounted_price == Money(7, currency='USD')
     with pytest.raises(NotApplicable):
         get_product_discount_on_sale(sale, sec_variant.product)
 

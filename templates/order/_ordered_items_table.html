@@ -1,7 +1,6 @@
 {% load i18n %}
 {% load i18n_address_tags %}
 {% load amount from prices_i18n %}
-{% load discount_amount_for from prices %}
 {% load product_first_image from product_images %}
 {% load discount_as_negative from voucher %}
 {% load placeholder %}
@@ -117,7 +116,7 @@
       <p>{{ order.discount_name }}</p>
     </div>
     <div class="col-4">
-      <p class="float-right">{% discount_as_negative order.discount %}</p>
+      <p class="float-right">{% discount_as_negative order.discount_amount %}</p>
     </div>
   </div>
 </div>

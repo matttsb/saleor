@@ -7,6 +7,5 @@ register = template.Library()
 
 @register.simple_tag
 def discount_as_negative(discount, html=False):
-    zero = Money(0, currency=discount.amount.currency)
-    return prices_i18n.amount(
-        zero - discount.amount, 'html' if html else 'text')
+    zero = Money(0, currency=discount.currency)
+    return prices_i18n.amount(zero - discount, 'html' if html else 'text')

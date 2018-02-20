@@ -16,7 +16,6 @@ from prices import Money, TaxedMoney
 
 from ..account.models import Address
 from ..core.utils import build_absolute_uri
-from ..discount.discounts import FixedDiscount
 from ..discount.models import Voucher
 from ..product.models import Product
 from .transitions import (
@@ -118,11 +117,6 @@ class Order(models.Model):
 
     def __str__(self):
         return '#%d' % (self.id,)
-
-    @property
-    def discount(self):
-        return FixedDiscount(
-            amount=self.discount_amount, name=self.discount_name)
 
     def get_absolute_url(self):
         return reverse('order:details', kwargs={'token': self.token})
