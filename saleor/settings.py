@@ -37,7 +37,7 @@ if os.environ.get('REDIS_URL'):
 
 DATABASES = {
     'default': dj_database_url.config(
-        default='postgres://saleor:saleor@localhost:5432/saleor',
+        default='postgres://postgres:postgres@localhost:5432/saleor',
         conn_max_age=600)}
 
 
@@ -250,15 +250,19 @@ def get_host():
 PAYMENT_HOST = get_host
 
 PAYMENT_MODEL = 'order.Payment'
-
+CHECKOUT_PAYMENT_CHOICES = [
+    ('stripe', 'StripeProvider')]
+# use sandbox
 PAYMENT_VARIANTS = {
-    'default': ('payments.dummy.DummyProvider', {})}
+    'stripe': ('payments.stripe.StripeProvider', {
+        'secret_key': 'sk_test_umfMsclAmcwHsYZ5r4r8RoGa',
+        'public_key': 'pk_test_N3PulS1UY7TfSFwWn5MdrVjC'})}
+
 
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
 SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 
-CHECKOUT_PAYMENT_CHOICES = [
-    ('default', 'Dummy provider')]
+
 
 MESSAGE_TAGS = {
     messages.ERROR: 'danger'}
@@ -279,7 +283,7 @@ bootstrap4 = {
 
 TEST_RUNNER = ''
 
-ALLOWED_HOSTS = get_list(os.environ.get('ALLOWED_HOSTS', 'localhost'))
+ALLOWED_HOSTS = ['*']
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
