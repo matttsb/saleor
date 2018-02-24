@@ -392,6 +392,10 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_RESULT_BACKEND = 'django-db'
 
+# MAGENTO IMPORT SETTINGS
+MAGENTO_REST_URL = 'http://magento2/rest/V1/'
+MAGENTO_ACCESS_TOKEN = 't3b0ppf4x22snsrndy128uit1xow40m1'
+
 # Impersonate module settings
 IMPERSONATE = {
     'URI_EXCLUSIONS': [r'^dashboard/'],

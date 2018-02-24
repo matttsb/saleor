@@ -4,19 +4,26 @@ import json
 from saleor.product.models import Category, Collection, Product,ProductVariant
 from django.conf import settings
 
+#  /V1/products/attributes
+#  /V1/products/types
+#  /V1/categories
+
 class Command(BaseCommand):
     help = 'Import products'
 
     def handle(self, *args, **options):
         
-        rest_url="http://magento2/rest/V1/"
-        access_token="t3b0ppf4x22snsrndy128uit1xow40m1"
-
-        endpoint = rest_url+"products?searchCriteria=0&fields=items[sku]"
+        rest_url = settings.MAGENTO_REST_URL
+        access_token = settings.MAGENTO_ACCESS_TOKEN
+        
+        endpoint = "http://magento2/rest/all/V1/categories/"
         headers = {"Authorization":"Bearer " + access_token}
-
         response = requests.get(endpoint, headers=headers).json()
-
+        print (response)
+   
+        endpoint = "%sproducts?searchCriteria=0&fields=items[sku]" % (rest_url)
+        headers = {"Authorization":"Bearer " + access_token}
+        response = requests.get(endpoint, headers=headers).json()
         items = response['items']
 
         for item in items:
