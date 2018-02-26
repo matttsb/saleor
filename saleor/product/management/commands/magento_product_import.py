@@ -40,16 +40,13 @@ class Command(BaseCommand):
             print (category)
             endpoint = "%sV1/categories/%s/products" % (rest_url, magento_category_id)
             headers = {"Authorization":"Bearer " + access_token}
-            response = requests.get(endpoint, headers=headers).json()      
-            print (response)
+            product_skus = requests.get(endpoint, headers=headers).json()      
+            print (product_skus)
+            for pkey in product_skus:
+                print ("sku:"+pkey['sku'])           
         
-            print ("")           
-            print("2nd level cats ({})".format(key['children_data']))
-            print ("")
-
-
-
-
+            #key['children_data']) process second level
+          
 
         print ("Stating Product Import")     
         endpoint = "%sV1/products?searchCriteria=0&fields=items[sku]" % (rest_url)
