@@ -17,8 +17,9 @@ class Command(BaseCommand):
         
         rest_url = settings.MAGENTO_REST_URL
         access_token = settings.MAGENTO_ACCESS_TOKEN
-            
-        endpoint = "%s/V1/products/attributes?searchCriteria=0" % (rest_url)
+       
+        print ("Stating Attribute Import")
+        endpoint = "%sV1/products/attributes?searchCriteria=0" % (rest_url)
         headers = {"Authorization":"Bearer " + access_token}
         items = requests.get(endpoint, headers=headers).json()
         for item in items['items']:
@@ -27,8 +28,9 @@ class Command(BaseCommand):
                 # Code to create attributes goes here!
             except:
                 print ('**WARNING** Attribute has no default front end label')
-
-        endpoint = "%s/V1//categories/" % (rest_url)
+        print ("Stating Category Import")
+        endpoint = "%sV1/categories/" % (rest_url)
+        print (endpoint)
         headers = {"Authorization":"Bearer " + access_token}
         response = requests.get(endpoint, headers=headers).json()
         for key in response['children_data']:
@@ -37,19 +39,25 @@ class Command(BaseCommand):
             print("2nd level cats ({})".format(key['children_data']))
             print ("")
 
+        endpoint = "%sV1/categories/4/products" % (rest_url)
+        headers = {"Authorization":"Bearer " + access_token}
+        response = requests.get(endpoint, headers=headers).json()
+        print (response)
+        print ("Stating Product Import")
+
     # code to create categories goes here!
     # name = models.CharField(max_length=128)s
     # slug = models.SlugField(max_length=50)
     # description = models.TextField(blank=True)
     # parent = 0
        
-        endpoint = "%s/V1/products?searchCriteria=0&fields=items[sku]" % (rest_url)
+        endpoint = "%sV1/products?searchCriteria=0&fields=items[sku]" % (rest_url)
         headers = {"Authorization":"Bearer " + access_token}
         response = requests.get(endpoint, headers=headers).json()
         items = response['items']
 
         for item in items:
-            endpoint = "%s/V1/products/%s" % (rest_url,item['sku'])
+            endpoint = "%sV1/products/%s" % (rest_url,item['sku'])
             magento_product = requests.get(endpoint, headers=headers).json()
             print(magento_product)
 
