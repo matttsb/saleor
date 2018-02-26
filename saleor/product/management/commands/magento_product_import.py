@@ -18,39 +18,40 @@ class Command(BaseCommand):
         rest_url = settings.MAGENTO_REST_URL
         access_token = settings.MAGENTO_ACCESS_TOKEN
        
-        print ("Stating Attribute Import")
-        endpoint = "%sV1/products/attributes?searchCriteria=0" % (rest_url)
-        headers = {"Authorization":"Bearer " + access_token}
-        items = requests.get(endpoint, headers=headers).json()
-        for item in items['items']:
-            try:
-                print(item['default_frontend_label'])
-                # Code to create attributes goes here!
-            except:
-                print ('**WARNING** Attribute has no default front end label')
+        # print ("Stating Attribute Import")
+        # endpoint = "%sV1/products/attributes?searchCriteria=0" % (rest_url)
+        # headers = {"Authorization":"Bearer " + access_token}
+        # items = requests.get(endpoint, headers=headers).json()
+        # for item in items['items']:
+        #     try:
+        #         print(item['default_frontend_label'])
+        #         # Code to create attributes goes here!
+        #     except:
+        #         print ('**WARNING** Attribute has no default front end label')
         print ("Stating Category Import")
         endpoint = "%sV1/categories/" % (rest_url)
         print (endpoint)
         headers = {"Authorization":"Bearer " + access_token}
         response = requests.get(endpoint, headers=headers).json()
         for key in response['children_data']:
-            print("Root categories ({})".format(key['name']))
+            category_name=key['name']
+            magento_category_id=key['id']
+            category=Category.objects.get_or_create(name=category_name,slug=category_name)
+            print (category)
+            endpoint = "%sV1/categories/%s/products" % (rest_url, magento_category_id)
+            headers = {"Authorization":"Bearer " + access_token}
+            response = requests.get(endpoint, headers=headers).json()      
+            print (response)
+        
             print ("")           
             print("2nd level cats ({})".format(key['children_data']))
             print ("")
 
-        endpoint = "%sV1/categories/4/products" % (rest_url)
-        headers = {"Authorization":"Bearer " + access_token}
-        response = requests.get(endpoint, headers=headers).json()
-        print (response)
-        print ("Stating Product Import")
 
-    # code to create categories goes here!
-    # name = models.CharField(max_length=128)s
-    # slug = models.SlugField(max_length=50)
-    # description = models.TextField(blank=True)
-    # parent = 0
-       
+
+
+
+        print ("Stating Product Import")     
         endpoint = "%sV1/products?searchCriteria=0&fields=items[sku]" % (rest_url)
         headers = {"Authorization":"Bearer " + access_token}
         response = requests.get(endpoint, headers=headers).json()
