@@ -1,12 +1,14 @@
+# Magento 2 > Saleor Product Import
+# add MAGENTO_REST_URL and MAGENTO_ACCESS_TOKEN to settings.py
+# 
+# python manage.py import_magento_products
+#
+
 from django.core.management import BaseCommand
 import requests
 import json
 from saleor.product.models import Category, Collection, Product,ProductVariant
 from django.conf import settings
-
-#  /V1/products/attributes
-#  /V1/products/types
-#  /V1/categories
 
 class Command(BaseCommand):
     help = 'Import products'
@@ -15,19 +17,39 @@ class Command(BaseCommand):
         
         rest_url = settings.MAGENTO_REST_URL
         access_token = settings.MAGENTO_ACCESS_TOKEN
-        
-        endpoint = "http://magento2/rest/all/V1/categories/"
+            
+        endpoint = "%s/V1/products/attributes?searchCriteria=0" % (rest_url)
+        headers = {"Authorization":"Bearer " + access_token}
+        items = requests.get(endpoint, headers=headers).json()
+        for item in items['items']:
+            try:
+                print(item['default_frontend_label'])
+                # Code to create attributes goes here!
+            except:
+                print ('**WARNING** Attribute has no default front end label')
+
+        endpoint = "%s/V1//categories/" % (rest_url)
         headers = {"Authorization":"Bearer " + access_token}
         response = requests.get(endpoint, headers=headers).json()
-        print (response)
-   
-        endpoint = "%sproducts?searchCriteria=0&fields=items[sku]" % (rest_url)
+        for key in response['children_data']:
+            print("Root categories ({})".format(key['name']))
+            print ("")           
+            print("2nd level cats ({})".format(key['children_data']))
+            print ("")
+
+    # code to create categories goes here!
+    # name = models.CharField(max_length=128)s
+    # slug = models.SlugField(max_length=50)
+    # description = models.TextField(blank=True)
+    # parent = 0
+       
+        endpoint = "%s/V1/products?searchCriteria=0&fields=items[sku]" % (rest_url)
         headers = {"Authorization":"Bearer " + access_token}
         response = requests.get(endpoint, headers=headers).json()
         items = response['items']
 
         for item in items:
-            endpoint = "%sproducts/%s" % (rest_url,item['sku'])
+            endpoint = "%s/V1/products/%s" % (rest_url,item['sku'])
             magento_product = requests.get(endpoint, headers=headers).json()
             print(magento_product)
 
@@ -45,7 +67,9 @@ class Command(BaseCommand):
                 product = imported_product
             )
 
-
+            #TODO: import images
+            #TODO: link products to categories
+            #TODO: import options and attributes
 
 
 # {'id': 2, 'sku': 'test', 'name': 'test', 'attribute_set_id': 4, 'price': 10, 'status': 1, 'visibility': 4, 'type_id': 'simple', 
