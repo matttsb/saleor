@@ -178,6 +178,7 @@ INSTALLED_APPS = [
     'graphene_django',
     'mptt',
     'payments',
+    'saleor-magento-import', 
     'webpack_loader',
     'social_django',
     'django_countries',
