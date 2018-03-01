@@ -10,36 +10,15 @@ from decimal import Decimal
 
 
 class Command(BaseCommand):
-    help = 'Import products'
+    help = 'Use to delete all products in a csv file by SKU'
     def handle(self, *args, **options):
         input_file = csv.DictReader(open("saleor/product/management/commands/test_data/csv/products.csv"))
         for magento_product in input_file:
-            check_exists = ProductVariant.objects.filter(sku=magento_product['sku'])
-            if magento_product['product_type'] == 'simple' and not magento_product['custom_options']:
-                if not check_exists:
-                    print ("creating : %s" % (magento_product['sku']))
-                    imported_product = Product.objects.create(
-                    price = float("7.73"),
-                    name=magento_product['name'],
-                    description=magento_product['description'],
-                    #price = float(magento_product['price']),
-                    product_type_id=1,
-                    category_id=1)       
-
-                    ProductVariant.objects.create(
-                    sku = magento_product['sku'],
-                    product = imported_product)
-                    if magento_product['base_image']:
-                        ProductImage.objects.create(
-                        product = imported_product,
-                        image=magento_product['base_image']
-                        )
-                else:
-                    print ("updating : %s" % (magento_product['sku'])) 
-                    saleor_product = ProductVariant.objects.get(sku=magento_product['sku']) 
-                    saleor_product.categories='default'
-                    saleor_product.price=magento_product['price']
-                    saleor_product.name=magento_product['name']
-                    saleor_product.save
-            else:
-                print ('Ignoring non simple product type or product with options')       
+            pv=ProductVariant.objects.filter(sku=magento_product['sku']).first()
+            if pv:
+                prod=pv.product_id
+                print (prod)
+                ProductImage.objects.filter(product_id=prod).delete()
+                print (ProductImage.objects.filter(product_id=prod).query)
+                ProductVariant.objects.filter(product_id=prod).delete()
+                Product.objects.filter(pk=prod).delete()
