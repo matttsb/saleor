@@ -12,7 +12,27 @@ from decimal import Decimal
 # You will need to copy your images from Magento into 'media/products' on your saleor installation
 # Tested with CSV exported from magento 2.x
 # - magentos simple product type only
-# - currently only imports sku, name, description, price, and base image, all products get saved in the saleor default category
+# - currently only imports sku, name, description, price, and base image
+
+def get_category_id(name):
+    category_levels=name.split(',', 1)[0].split('/')
+    parentid = 1
+    level = 0
+    for category in category_levels:
+        if not Category.objects.filter(name=category):
+            print ("creating category " + category)
+            if level > 0:
+                newcat = Category.objects.create(name=category, parent = newcat)
+            else:
+                newcat = Category.objects.create(name=category)
+            level += 1
+            parentid = newcat.pk 
+        else:
+            getcat = Category.objects.filter(name=category_levels[-1]).first()
+            if getcat:
+                parentid = getcat.id
+    return parentid
+
 
 class Command(BaseCommand):
     help = 'Import products'
@@ -31,7 +51,8 @@ class Command(BaseCommand):
                     description=magento_product['description'],
                     price = magento_product['price'],
                     product_type_id=1,
-                    category_id=1)       
+                    category_id=get_category_id(magento_product['categories']))
+
                     ProductVariant.objects.create(
                     sku = magento_product['sku'],
                     product = imported_product)
