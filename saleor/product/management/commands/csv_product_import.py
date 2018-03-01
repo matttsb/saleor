@@ -9,6 +9,7 @@ from decimal import Decimal
 # USAGE:
 # python manage.py csv_product_import path/to/file.csv
 # file.csv should contain one column named 'sku', all other columns ignored
+# You will need to copy your images from Magento into 'media/products' on your saleor installation
 # Tested with CSV exported from magento 2.x
 # - magentos simple product type only
 # - currently only imports sku, name, description, price, and base image, all products get saved in the saleor default category
@@ -28,26 +29,27 @@ class Command(BaseCommand):
                     imported_product = Product.objects.create(
                     name=magento_product['name'],
                     description=magento_product['description'],
-                    #TODO: fails if value is an integer
-                    price = float(magento_product['price']),
+                    price = magento_product['price'],
                     product_type_id=1,
                     category_id=1)       
-
                     ProductVariant.objects.create(
                     sku = magento_product['sku'],
                     product = imported_product)
                     if magento_product['base_image']:
                         ProductImage.objects.create(
                         product = imported_product,
-                        image=magento_product['base_image']
+                        image='products'+magento_product['base_image']
                         )
                 else:
                     print ("updating : %s" % (magento_product['sku'])) 
-                    saleor_product = ProductVariant.objects.get(sku=magento_product['sku']) 
-                    saleor_product.categories='default'
+                    saleor_productv = ProductVariant.objects.get(sku=magento_product['sku']) 
+                    saleor_productv.categories='default'
+                    saleor_productv.price=magento_product['price']
+                    saleor_productv.name=magento_product['name']
+                    saleor_productv.description=magento_product['description']
+                    saleor_productv.save()
+                    saleor_product = Product.objects.get(pk=saleor_productv.product_id) 
                     saleor_product.price=magento_product['price']
-                    saleor_product.name=magento_product['name']
-                    saleor_product.description=magento_product['description']
-                    saleor_product.save
+                    saleor_productv.save()
             else:
                 print ('Ignoring non simple product type or product with options')       
